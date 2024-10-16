@@ -28,10 +28,16 @@
 
 extern BEAM* pBeam;
 extern BEAM* pBeam2;
+extern dlight_t* pLight;
 void HUD_GetLastOrg(float* org);
 
 void UpdateBeams()
 {
+	float r = 50.0f;
+	float g = 50.0f;
+	float b = 125.0f;
+	static float randmultiplier = 0;
+
 	Vector forward, vecSrc, vecEnd, origin, angles, right, up;
 	Vector view_ofs;
 	pmtrace_t tr;

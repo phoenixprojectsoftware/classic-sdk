@@ -36,3 +36,5 @@ void EV_SnarkFire(event_args_t* args);
 
 void EV_TrainPitchAdjust(event_args_t* args);
 void EV_VehiclePitchAdjust(event_args_t* args);
+
+void MuzzleFlash(int index, float r, float g, float b, float a, float radius, float life, float decay, Vector vecOrigin = Vector(0, 0, 0));

@@ -59,6 +59,40 @@ static inline bool EV_HLDM_IsBSPModel(physent_t* pe)
 	return pe != nullptr && (pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP);
 }
 
+void MuzzleFlash(int index, float r, float g, float b, float a, float radius, float life, float decay, Vector vecOrigin)
+{
+	cl_entity_s* entity = gEngfuncs.GetViewModel();
+	dlight_s* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(entity->index);
+	dlight_s* el = gEngfuncs.pEfxAPI->CL_AllocElight(entity->index);
+	if (dl)
+	{
+		if (vecOrigin != Vector(0, 0, 0))
+			dl->origin = vecOrigin;
+		else
+			dl->origin = entity->attachment[index];
+		dl->color.r = r * a;
+		dl->color.g = g * a;
+		dl->color.b = b * a;
+		dl->die = gEngfuncs.GetClientTime() + life;
+		dl->radius = radius;
+		dl->decay = decay;
+	}
+	if (el)
+	{
+		if (vecOrigin != Vector(0, 0, 0))
+			el->origin = vecOrigin;
+		else
+			el->origin = entity->attachment[index];
+		el->color.r = r * a;
+		el->color.g = g * a;
+		el->color.b = b * a;
+		el->die = gEngfuncs.GetClientTime() + life;
+		el->radius = radius;
+		el->decay = decay;
+	}
+}
+
+
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
 // returns volume of strike instrument (crowbar) to play
@@ -1301,6 +1335,7 @@ int g_fireAnims2[] = {EGON_ALTFIRECYCLE};
 
 BEAM* pBeam;
 BEAM* pBeam2;
+dlight_s* pLight;
 
 void EV_EgonFire(event_args_t* args)
 {
@@ -1388,6 +1423,16 @@ void EV_EgonFire(event_args_t* args)
 				pBeam->flags |= (FBEAM_SINENOISE);
 
 			pBeam2 = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 5.0, 0.08, 0.7, 25, 0, 0, r, g, b);
+
+			pLight = gEngfuncs.pEfxAPI->CL_AllocDlight(idx);
+			if (pLight)
+			{
+				pLight->color = {(byte)r, (byte)g, (byte)b};
+				pLight->origin = vecSrc;
+				pLight->radius = 0;
+				pLight->decay = 512.0f * 1.5f;
+				pLight->die = gEngfuncs.GetClientTime() + 999999.0f;
+			}
 		}
 	}
 }
@@ -1421,6 +1466,12 @@ void EV_EgonStop(event_args_t* args)
 		{
 			pBeam2->die = 0.0;
 			pBeam2 = NULL;
+		}
+
+		if (pLight)
+		{
+			pLight->die = gEngfuncs.GetClientTime() + 0.75f;
+			pLight = NULL;
 		}
 
 		// HACK: only reset animation if the Egon is still equipped.
