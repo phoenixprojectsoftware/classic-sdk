@@ -240,18 +240,6 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 	if (pEntity == NULL)
 		return;
 
-	if (g_pGameRules->IsMultiplayer())
-	{
-		if (m_pSprite && 0 != pEntity->pev->takedamage)
-		{
-			m_pSprite->pev->effects &= ~EF_NODRAW;
-		}
-		else if (m_pSprite)
-		{
-			m_pSprite->pev->effects |= EF_NODRAW;
-		}
-	}
-
 
 #endif
 
@@ -417,7 +405,7 @@ void CEgon::CreateEffect()
 	// Josh: This sprite is not predicted on the client, so was missing
 	// for many years after it got broken in an update.
 	// m_pSprite->pev->flags |= FL_SKIPLOCALHOST;
-	m_pSprite->pev->owner = m_pPlayer->edict();
+	//m_pSprite->pev->owner = m_pPlayer->edict();
 
 	if (m_fireMode == FIRE_WIDE)
 	{
