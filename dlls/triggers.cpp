@@ -999,19 +999,7 @@ void CBaseTrigger::HurtTouch(CBaseEntity* pOther)
 #endif
 
 	if (fldmg < 0)
-	{
-		bool bApplyHeal = true;
-
-		if (g_pGameRules->IsMultiplayer() && pOther->IsPlayer())
-		{
-			bApplyHeal = pOther->pev->deadflag == DEAD_NO;
-		}
-
-		if (bApplyHeal)
-		{
-			pOther->TakeHealth(-fldmg, m_bitsDamageInflict);
-		}
-	}
+		pOther->TakeHealth(-fldmg, m_bitsDamageInflict);
 	else
 		pOther->TakeDamage(pev, pev, fldmg, m_bitsDamageInflict);
 
@@ -2448,4 +2436,87 @@ void CTriggerCamera::Move()
 
 	float fraction = 2 * gpGlobals->frametime;
 	pev->velocity = ((pev->movedir * pev->speed) * fraction) + (pev->velocity * (1 - fraction));
+}
+
+class CTriggerPlayerFreeze : public CBaseDelay
+{
+public:
+	static TYPEDESCRIPTION m_SaveData[];
+
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
+
+	void Spawn() override;
+
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+
+	void EXPORT PlayerFreezeDelay();
+
+public:
+	bool m_bUnFrozen;
+};
+
+TYPEDESCRIPTION CTriggerPlayerFreeze::m_SaveData[] =
+	{
+		DEFINE_FIELD(CTriggerPlayerFreeze, m_bUnFrozen, FIELD_BOOLEAN),
+};
+
+LINK_ENTITY_TO_CLASS(trigger_playerfreeze, CTriggerPlayerFreeze);
+
+bool CTriggerPlayerFreeze::Save(CSave& save)
+{
+	if (!CBaseDelay::Save(save))
+		return false;
+
+	return save.WriteFields("CTriggerPlayerFreeze", this, m_SaveData, ARRAYSIZE(m_SaveData));
+}
+
+bool CTriggerPlayerFreeze::Restore(CRestore& restore)
+{
+	if (!CBaseDelay::Restore(restore))
+		return false;
+
+	if (!restore.ReadFields("CTriggerPlayerFreeze", this, m_SaveData, ARRAYSIZE(m_SaveData)))
+		return false;
+
+	if (!m_bUnFrozen)
+	{
+		SetThink(&CTriggerPlayerFreeze::PlayerFreezeDelay);
+		pev->nextthink = gpGlobals->time + 0.5;
+	}
+
+	return true;
+}
+
+void CTriggerPlayerFreeze::Spawn()
+{
+	if (g_pGameRules->IsDeathmatch())
+		REMOVE_ENTITY(edict());
+	else
+		m_bUnFrozen = true;
+}
+
+void CTriggerPlayerFreeze::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	m_bUnFrozen = !m_bUnFrozen;
+
+	//TODO: not made for multiplayer
+	auto pPlayer = static_cast<CBasePlayer*>(UTIL_GetLocalPlayer());
+
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	pPlayer->EnableControl(m_bUnFrozen);
+}
+
+void CTriggerPlayerFreeze::PlayerFreezeDelay()
+{
+	auto player = static_cast<CBasePlayer*>(UTIL_PlayerByIndex(1));
+
+	if (player)
+		player->EnableControl(m_bUnFrozen);
+
+	SetThink(nullptr);
 }

@@ -456,8 +456,6 @@ cvar_t sk_player_leg3 = {"sk_player_leg3", "1"};
 
 cvar_t sv_pushable_fixed_tick_fudge = {"sv_pushable_fixed_tick_fudge", "15"};
 
-cvar_t sv_busters = {"sv_busters", "0", FCVAR_SERVER};
-
 static bool SV_InitServer()
 {
 	if (!FileSystem_LoadFileSystem())
@@ -518,8 +516,6 @@ void GameDLLInit()
 	CVAR_REGISTER(&allowmonsters);
 
 	CVAR_REGISTER(&mp_chattime);
-
-	CVAR_REGISTER(&sv_busters);
 
 	CVAR_REGISTER(&sv_allowbunnyhopping);
 

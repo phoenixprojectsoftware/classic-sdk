@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)$(Configuration)\$(ProjectName)\int\</IntDir>
-    <TargetName>hl</TargetName>
+    <TargetName>bshift</TargetName>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <OutDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</OutDir>
   </PropertyGroup>
@@ -184,6 +184,7 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClCompile Include="..\..\dlls\python.cpp" />
     <ClCompile Include="..\..\dlls\rat.cpp" />
     <ClCompile Include="..\..\dlls\roach.cpp" />
+    <ClCompile Include="..\..\dlls\rosenberg.cpp" />
     <ClCompile Include="..\..\dlls\rpg.cpp" />
     <ClCompile Include="..\..\dlls\satchel.cpp" />
     <ClCompile Include="..\..\dlls\schedule.cpp" />
@@ -207,7 +208,6 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClCompile Include="..\..\dlls\turret.cpp" />
     <ClCompile Include="..\..\dlls\UserMessages.cpp" />
     <ClCompile Include="..\..\dlls\util.cpp" />
-    <ClCompile Include="..\..\dlls\vehicle.cpp" />
     <ClCompile Include="..\..\dlls\weapons.cpp" />
     <ClCompile Include="..\..\dlls\weapons_shared.cpp" />
     <ClCompile Include="..\..\dlls\world.cpp" />

@@ -327,9 +327,6 @@
     <ClCompile Include="..\..\dlls\util.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\vehicle.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\game_shared\voice_gamemgr.cpp">
       <Filter>Source Files\game_shared</Filter>
     </ClCompile>
@@ -356,6 +353,9 @@
     </ClCompile>
     <ClCompile Include="..\..\dlls\UserMessages.cpp">
       <Filter>Source Files\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\rosenberg.cpp">
+		<Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\mathlib.cpp">
       <Filter>Source Files\common</Filter>

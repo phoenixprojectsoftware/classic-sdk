@@ -47,8 +47,6 @@
 extern void CopyToBodyQue(entvars_t* pev);
 extern edict_t* EntSelectSpawnPoint(CBaseEntity* pPlayer);
 
-extern bool IsBustingGame();
-
 #define TRAIN_ACTIVE 0x80
 #define TRAIN_NEW 0xc0
 #define TRAIN_OFF 0x00
@@ -625,20 +623,8 @@ void CBasePlayer::PackDeadPlayerItems()
 				case GR_PLR_DROP_GUN_ACTIVE:
 					if (m_pActiveItem && pPlayerItem == m_pActiveItem)
 					{
-						CBasePlayerWeapon* pWeapon = (CBasePlayerWeapon*)pPlayerItem;
-						int nIndex = iPW++;
-
 						// this is the active item. Pack it.
-						rgpPackWeapons[nIndex] = pWeapon;
-
-						// Reload the weapon before dropping it if we have ammo
-						int j = V_min(pWeapon->iMaxClip() - pWeapon->m_iClip, m_rgAmmo[pWeapon->m_iPrimaryAmmoType]);
-
-						// Add them to the clip
-						pWeapon->m_iClip += j;
-						m_rgAmmo[pWeapon->m_iPrimaryAmmoType] -= j;
-
-						TabulateAmmo();
+						rgpPackWeapons[iPW++] = (CBasePlayerWeapon*)pPlayerItem;
 					}
 					break;
 
@@ -702,66 +688,23 @@ void CBasePlayer::PackDeadPlayerItems()
 	iPA = 0;
 	iPW = 0;
 
-	if (IsBustingGame())
+	// pack the ammo
+	while (iPackAmmo[iPA] != -1)
 	{
-		if (HasNamedPlayerItem("weapon_egon"))
-		{
-			for (i = 0; i < MAX_ITEM_TYPES; i++)
-			{
-				CBasePlayerItem* pItem = m_rgpPlayerItems[i];
-
-				if (pItem)
-				{
-					if (!strcmp("weapon_egon", STRING(pItem->pev->classname)))
-					{
-						pWeaponBox->PackWeapon(pItem);
-
-						SET_MODEL(ENT(pWeaponBox->pev), "models/w_egon.mdl");
-
-						pWeaponBox->pev->velocity = Vector(0, 0, 0);
-						pWeaponBox->pev->renderfx = kRenderFxGlowShell;
-						pWeaponBox->pev->renderamt = 25;
-						pWeaponBox->pev->rendercolor = Vector(0, 75, 250);
-
-						break;
-					}
-				}
-			}
-		}
+		pWeaponBox->PackAmmo(MAKE_STRING(CBasePlayerItem::AmmoInfoArray[iPackAmmo[iPA]].pszName), m_rgAmmo[iPackAmmo[iPA]]);
+		iPA++;
 	}
-	else
+
+	// now pack all of the items in the lists
+	while (rgpPackWeapons[iPW])
 	{
-		bool bPackItems = true;
+		// weapon unhooked from the player. Pack it into der box.
+		pWeaponBox->PackWeapon(rgpPackWeapons[iPW]);
 
-		if (iAmmoRules == GR_PLR_DROP_AMMO_ACTIVE && iWeaponRules == GR_PLR_DROP_GUN_ACTIVE)
-		{
-			if (rgpPackWeapons[0] && FClassnameIs(rgpPackWeapons[0]->pev, "weapon_satchel") && (iPackAmmo[0] == -1 || (m_rgAmmo[iPackAmmo[0]] == 0)))
-			{
-				bPackItems = false;
-			}
-		}
-
-		if (bPackItems)
-		{
-			// pack the ammo
-			while (iPackAmmo[iPA] != -1)
-			{
-				pWeaponBox->PackAmmo(MAKE_STRING(CBasePlayerItem::AmmoInfoArray[iPackAmmo[iPA]].pszName), m_rgAmmo[iPackAmmo[iPA]]);
-				iPA++;
-			}
-
-			// now pack all of the items in the lists
-			while (rgpPackWeapons[iPW])
-			{
-				// weapon unhooked from the player. Pack it into der box.
-				pWeaponBox->PackWeapon(rgpPackWeapons[iPW]);
-
-				iPW++;
-			}
-		}
-
-		pWeaponBox->pev->velocity = pev->velocity * 1.2; // weaponbox has player's velocity, then some.
+		iPW++;
 	}
+
+	pWeaponBox->pev->velocity = pev->velocity * 1.2; // weaponbox has player's velocity, then some.
 
 	RemoveAllItems(true); // now strip off everything that wasn't handled by the code above.
 }
@@ -878,11 +821,6 @@ void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 	WRITE_BYTE(0);
 	MESSAGE_END();
 
-	// Adrian: always make the players non-solid in multiplayer when they die
-	if (g_pGameRules->IsMultiplayer())
-	{
-		pev->solid = SOLID_NOT;
-	}
 
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
 	// UTIL_ScreenFade( edict(), Vector(128,0,0), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
@@ -1500,9 +1438,6 @@ void CBasePlayer::PlayerUse()
 			{
 				m_afPhysicsFlags &= ~PFLAG_ONTRAIN;
 				m_iTrain = TRAIN_NEW | TRAIN_OFF;
-				CBaseEntity* pTrain = CBaseEntity::Instance(pev->groundentity);
-				if (pTrain && (pTrain->Classify() == CLASS_VEHICLE))
-					((CFuncVehicle*)pTrain)->m_pDriver = NULL;
 				return;
 			}
 			else
@@ -1514,13 +1449,7 @@ void CBasePlayer::PlayerUse()
 					m_afPhysicsFlags |= PFLAG_ONTRAIN;
 					m_iTrain = TrainSpeed(pTrain->pev->speed, pTrain->pev->impulse);
 					m_iTrain |= TRAIN_NEW;
-					if (pTrain->Classify() == CLASS_VEHICLE)
-					{
-						EMIT_SOUND(ENT(pev), CHAN_ITEM, "plats/vehicle_ignition.wav", 0.8, ATTN_NORM);
-						((CFuncVehicle*)pTrain)->m_pDriver = this;
-					}
-					else
-						EMIT_SOUND(ENT(pev), CHAN_ITEM, "plats/train_use1.wav", 0.8, ATTN_NORM);
+					EMIT_SOUND(ENT(pev), CHAN_ITEM, "plats/train_use1.wav", 0.8, ATTN_NORM);
 					return;
 				}
 			}
@@ -1640,15 +1569,6 @@ void CBasePlayer::Jump()
 	{
 		pev->velocity = pev->velocity + pev->basevelocity;
 	}
-
-	// JoshA: CS behaviour does this for tracktrain + train as well,
-	// but let's just do this for func_vehicle to avoid breaking existing content.
-	//
-	// If you're standing on a moving train... then add the velocity of the train to yours.
-	if (pevGround && (/*(!strcmp( "func_tracktrain", STRING(pevGround->classname))) ||
-			(!strcmp( "func_train", STRING(pevGround->classname))) ) ||*/
-			(!strcmp("func_vehicle", STRING(pevGround->classname)))))
-		pev->velocity = pev->velocity + pevGround->velocity;
 }
 
 
@@ -1953,15 +1873,12 @@ void CBasePlayer::PreThink()
 				//ALERT( at_error, "In train mode with no train!\n" );
 				m_afPhysicsFlags &= ~PFLAG_ONTRAIN;
 				m_iTrain = TRAIN_NEW | TRAIN_OFF;
-				if (pTrain->Classify() == CLASS_VEHICLE)
-					((CFuncVehicle*)pTrain)->m_pDriver = NULL;
 				return;
 			}
 		}
-		else if (!FBitSet(pev->flags, FL_ONGROUND) || FBitSet(pTrain->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL) || ((pev->button & (IN_MOVELEFT | IN_MOVERIGHT)) != 0 && pTrain->Classify() != CLASS_VEHICLE))
+		else if (!FBitSet(pev->flags, FL_ONGROUND) || FBitSet(pTrain->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL) || (pev->button & (IN_MOVELEFT | IN_MOVERIGHT)) != 0)
 		{
 			// Turn off the train if you jump, strafe, or the train controls go dead
-			// and it isn't a func_vehicle
 			m_afPhysicsFlags &= ~PFLAG_ONTRAIN;
 			m_iTrain = TRAIN_NEW | TRAIN_OFF;
 			return;
@@ -1969,41 +1886,15 @@ void CBasePlayer::PreThink()
 
 		pev->velocity = g_vecZero;
 		vel = 0;
-		if (pTrain->Classify() == CLASS_VEHICLE)
+		if ((m_afButtonPressed & IN_FORWARD) != 0)
 		{
-			if (pev->button & IN_FORWARD)
-			{
-				vel = 1;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
-			if (pev->button & IN_BACK)
-			{
-				vel = -1;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
-			if (pev->button & IN_MOVELEFT)
-			{
-				vel = 20;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
-			if (pev->button & IN_MOVERIGHT)
-			{
-				vel = 30;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
+			vel = 1;
+			pTrain->Use(this, this, USE_SET, (float)vel);
 		}
-		else
+		else if ((m_afButtonPressed & IN_BACK) != 0)
 		{
-			if ((m_afButtonPressed & IN_FORWARD) != 0)
-			{
-				vel = 1;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
-			else if ((m_afButtonPressed & IN_BACK) != 0)
-			{
-				vel = -1;
-				pTrain->Use(this, this, USE_SET, (float)vel);
-			}
+			vel = -1;
+			pTrain->Use(this, this, USE_SET, (float)vel);
 		}
 
 		if (0 != vel)
@@ -2817,8 +2708,6 @@ edict_t* EntSelectSpawnPoint(CBaseEntity* pPlayer)
 	CBaseEntity* pSpot;
 	edict_t* player;
 
-	int nNumRandomSpawnsToTry = 10;
-
 	player = pPlayer->edict();
 
 	// choose a info_player_deathmatch point
@@ -2833,21 +2722,9 @@ edict_t* EntSelectSpawnPoint(CBaseEntity* pPlayer)
 	}
 	else if (g_pGameRules->IsDeathmatch())
 	{
-		if (NULL == g_pLastSpawn)
-		{
-			int nNumSpawnPoints = 0;
-			CBaseEntity* pEnt = UTIL_FindEntityByClassname(NULL, "info_player_deathmatch");
-			while (NULL != pEnt)
-			{
-				nNumSpawnPoints++;
-				pEnt = UTIL_FindEntityByClassname(pEnt, "info_player_deathmatch");
-			}
-			nNumRandomSpawnsToTry = nNumSpawnPoints;
-		}
-
 		pSpot = g_pLastSpawn;
 		// Randomize the start spot
-		for (int i = RANDOM_LONG(1, nNumRandomSpawnsToTry - 1); i > 0; i--)
+		for (int i = RANDOM_LONG(1, 5); i > 0; i--)
 			pSpot = UTIL_FindEntityByClassname(pSpot, "info_player_deathmatch");
 		if (FNullEnt(pSpot)) // skip over the null point
 			pSpot = UTIL_FindEntityByClassname(pSpot, "info_player_deathmatch");
@@ -4815,33 +4692,6 @@ bool CBasePlayer::HasNamedPlayerItem(const char* pszItemName)
 			{
 				return true;
 			}
-			pItem = pItem->m_pNext;
-		}
-	}
-
-	return false;
-}
-
-//=========================================================
-// HasPlayerItemFromID
-// Just compare IDs, rather than classnames
-//=========================================================
-bool CBasePlayer::HasPlayerItemFromID(int nID)
-{
-	CBasePlayerItem* pItem;
-	int i;
-
-	for (i = 0; i < MAX_ITEM_TYPES; i++)
-	{
-		pItem = m_rgpPlayerItems[i];
-
-		while (pItem)
-		{
-			if (pItem->m_iId == nID)
-			{
-				return true;
-			}
-
 			pItem = pItem->m_pNext;
 		}
 	}

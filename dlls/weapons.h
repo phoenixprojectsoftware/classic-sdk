@@ -80,7 +80,7 @@ public:
 #define RPG_WEIGHT 20
 #define GAUSS_WEIGHT 20
 #define EGON_WEIGHT 20
-#define HORNETGUN_WEIGHT 15
+#define HORNETGUN_WEIGHT 10
 #define HANDGRENADE_WEIGHT 5
 #define SNARK_WEIGHT 5
 #define SATCHEL_WEIGHT -10
@@ -172,7 +172,6 @@ typedef enum
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY 4
 #define ITEM_FLAG_LIMITINWORLD 8
 #define ITEM_FLAG_EXHAUSTIBLE 16 // A player can totally exhaust their ammo supply and lose this weapon
-#define ITEM_FLAG_NOAUTOSWITCHTO 32
 
 #define WEAPON_IS_ONTARGET 0x40
 
@@ -831,8 +830,6 @@ public:
 	void EXPORT IgniteThink();
 	void EXPORT RocketTouch(CBaseEntity* pOther);
 	static CRpgRocket* CreateRpgRocket(Vector vecOrigin, Vector vecAngles, CBaseEntity* pOwner, CRpg* pLauncher);
-
-	CRpg* GetLauncher();
 
 	int m_iTrail;
 	float m_flIgniteTime;
