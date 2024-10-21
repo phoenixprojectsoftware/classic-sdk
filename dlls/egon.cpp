@@ -84,6 +84,11 @@ void CEgon::Holster()
 	EndAttack();
 }
 
+bool CEgon::CanHolster()
+{
+	return true;
+}
+
 bool CEgon::GetItemInfo(ItemInfo* p)
 {
 	p->pszName = STRING(pev->classname);
