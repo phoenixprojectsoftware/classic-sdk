@@ -25,17 +25,12 @@
 #include "vgui_SchemeManager.h"
 
 #define TF_DEFS_ONLY
-#define PC_LASTCLASS 10
+//TODO: this is a real mess
+#define PC_RANDOM 7
+#define PC_FIRSTCLASS 1
+#define PC_LASTCLASS 7
 #define PC_UNDEFINED 0
-#define MENU_DEFAULT				1
-#define MENU_TEAM 					2
-#define MENU_CLASS 					3
-#define MENU_MAPBRIEFING			4
-#define MENU_INTRO 					5
-#define MENU_CLASSHELP				6
-#define MENU_CLASSHELP2 			7
-#define MENU_REPEATHELP 			8
-#define MENU_SPECHELP				9
+#define PC_MAX_TEAMS 2
 using namespace vgui;
 
 class Cursor;
@@ -52,13 +47,19 @@ class CTransparentPanel;
 class CClassMenuPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
+class CStatsMenuPanel;
 
 char* GetVGUITGAName(const char *pszName);
 BitmapTGA *LoadTGAForRes(const char* pImageName);
 void ScaleColors( int &r, int &g, int &b, int a );
-extern const char *sTFClassSelection[];
+
+const int StatsTeamsCount = 4;
+
+extern char * sCTFClassSelection[][7];
 extern int sTFValidClassInts[];
-extern const char *sLocalisedClasses[];
+extern char *sLocalisedClasses[][7];
+extern const char* sLocalisedStatsTeams[StatsTeamsCount];
+extern const char* sCTFStatsSelection[StatsTeamsCount];
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
 extern TeamFortressViewport *gViewPort;
@@ -128,6 +129,8 @@ public:
 	{
 		// Do nothing, so the background's left transparent.
 	}
+
+	virtual void setImage(const char* pImageName);
 };
 
 // Command Label
@@ -481,6 +484,7 @@ public:
 };
 
 //==============================================================================
+//NOTE/ called CTFViewport in Op4
 class TeamFortressViewport : public Panel
 {
 private:
@@ -507,6 +511,7 @@ private:
 	void		 CreateClassMenu( void );
 	CMenuPanel*	 ShowClassMenu( void );
 	void		 CreateSpectatorMenu( void );
+	void CreateStatsMenu();
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -576,6 +581,12 @@ public:
 	void HideVGUIMenu( void );
 	void HideTopMenu( void );
 
+	void SaveStatsMenu();
+	CMenuPanel* ShowStatsMenu();
+	void SwitchToStatsMenu();
+	void SwitchToScoreBoard();
+	void HideScoreStatsWindow();
+
 	CMenuPanel* CreateTextWindow( int iTextToShow );
 
 	CCommandMenu *CreateSubMenu( CommandButton *pButton, CCommandMenu *pParentMenu, int iYOffset, int iXOffset = 0 );
@@ -591,6 +602,7 @@ public:
 	bool GetAllowSpectators() { return m_iAllowSpectators; };
 
 	// Message Handlers
+
 	bool MsgFunc_ValClass(const char *pszName, int iSize, void *pbuf );
 	bool MsgFunc_TeamNames(const char *pszName, int iSize, void *pbuf );
 	bool MsgFunc_Feign(const char *pszName, int iSize, void *pbuf );
@@ -607,6 +619,10 @@ public:
 	bool MsgFunc_AllowSpec( const char *pszName, int iSize, void *pbuf );
 	bool MsgFunc_SpecFade( const char *pszName, int iSize, void *pbuf );	
 	bool MsgFunc_ResetFade( const char *pszName, int iSize, void *pbuf );	
+	bool MsgFunc_TeamFull( const char *pszName, int iSize, void *pbuf );
+	bool MsgFunc_SetMenuTeam( const char *pszName, int iSize, void *pbuf );
+	bool MsgFunc_StatsInfo(const char* pszName, int iSize, void* pbuf);
+	bool MsgFunc_StatsPlayer(const char* pszName, int iSize, void* pbuf);
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -627,8 +643,10 @@ public:
 	int						m_SpectatorCameraMenu;
 	int						m_PlayerMenu; // a list of current player
 	CClassMenuPanel	*m_pClassMenu;
+	CStatsMenuPanel* m_pStatsMenu;
 	ScorePanel		*m_pScoreBoard;
 	SpectatorPanel *		m_pSpectatorPanel;
+	int m_iCTFTeamNumber;
 	char			m_szServerName[ MAX_SERVERNAME_LENGTH ];
 };
 
@@ -707,7 +725,7 @@ public:
 	{
 	}
 
-	CMenuHandler_StringCommandClassSelect( const char *pszCommand, int iClose ) : CMenuHandler_StringCommand( pszCommand, iClose )
+	CMenuHandler_StringCommandClassSelect( const char *pszCommand, bool iClose ) : CMenuHandler_StringCommand( pszCommand, iClose )
 	{
 	}
 
@@ -1597,13 +1615,13 @@ public:
 class CClassMenuPanel : public CMenuPanel
 {
 private:
-	CTransparentPanel	*m_pClassInfoPanel[PC_LASTCLASS];
+	CTransparentPanel	*m_pClassInfoPanel[ PC_MAX_TEAMS ][PC_LASTCLASS];
 	Label				*m_pPlayers[PC_LASTCLASS];
-	ClassButton			*m_pButtons[PC_LASTCLASS];
+	ClassButton			*m_pButtons[ PC_MAX_TEAMS ][PC_LASTCLASS];
 	CommandButton		*m_pCancelButton;
 	ScrollPanel			*m_pScrollPanel;
 
-	CImageLabel			*m_pClassImages[MAX_TEAMS][PC_LASTCLASS];
+	CImageLabel			*m_pClassImages[ PC_MAX_TEAMS ][PC_LASTCLASS];
 
 	int					m_iCurrentInfo;
 
@@ -1639,6 +1657,9 @@ public:
 	CommandButton		*m_pCancelButton;
 	CommandButton		*m_pSpectateButton;
 
+	TextPanel* m_pTeamFull;
+	float m_flTeamFullReset;
+
 	int					m_iCurrentInfo;
 
 public:
@@ -1656,7 +1677,15 @@ public:
 	{
 		CMenuPanel::Reset();
 		m_iCurrentInfo = 0;
+
+		if( m_flTeamFullReset <= gHUD.m_flTime )
+		{
+			m_pTeamFull->setVisible( false );
+			m_flTeamFullReset = 0;
+		}
 	}
+
+	bool MsgFunc_TeamFull( const char* pszName, int iSize, void* pbuf );
 };
 
 //=========================================================

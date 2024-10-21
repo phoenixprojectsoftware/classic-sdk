@@ -44,7 +44,7 @@ void LinkUserMessages()
 	gmsgInitHUD = REG_USER_MSG("InitHUD", 0);	// called every time a new player joins the server
 	gmsgShowGameTitle = REG_USER_MSG("GameTitle", 1);
 	gmsgDeathMsg = REG_USER_MSG("DeathMsg", -1);
-	gmsgScoreInfo = REG_USER_MSG("ScoreInfo", 9);
+	gmsgScoreInfo = REG_USER_MSG("ScoreInfo", 5);
 	gmsgTeamInfo = REG_USER_MSG("TeamInfo", -1);   // sets the name of a player's team
 	gmsgTeamScore = REG_USER_MSG("TeamScore", -1); // sets the score of a team on the scoreboard
 	gmsgGameMode = REG_USER_MSG("GameMode", 1);
@@ -65,4 +65,21 @@ void LinkUserMessages()
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 
 	gmsgWeapons = REG_USER_MSG("Weapons", 8);
+
+	gmsgSpectator = g_engfuncs.pfnRegUserMsg("Spectator", 2);
+	gmsgStatusIcon = g_engfuncs.pfnRegUserMsg("StatusIcon", -1);
+	gmsgPlayerBrowse = g_engfuncs.pfnRegUserMsg("PlyrBrowse", -1);
+	gmsgHudColor = g_engfuncs.pfnRegUserMsg("HudColor", 3);
+	gmsgFlagIcon = g_engfuncs.pfnRegUserMsg("FlagIcon", -1);
+	gmsgFlagTimer = g_engfuncs.pfnRegUserMsg("FlagTimer", -1);
+	gmsgPlayerIcon = g_engfuncs.pfnRegUserMsg("PlayerIcon", -1);
+	gmsgVGUIMenu = g_engfuncs.pfnRegUserMsg("VGUIMenu", -1);
+	gmsgAllowSpec = g_engfuncs.pfnRegUserMsg("AllowSpec", 1);
+	gmsgSetMenuTeam = g_engfuncs.pfnRegUserMsg("SetMenuTeam", 1);
+	gmsgCTFScore = g_engfuncs.pfnRegUserMsg("CTFScore", 2);
+	gmsgStatsInfo = g_engfuncs.pfnRegUserMsg("StatsInfo", -1);
+	gmsgStatsPlayer = g_engfuncs.pfnRegUserMsg("StatsPlayer", 31);
+	gmsgTeamFull = g_engfuncs.pfnRegUserMsg("TeamFull", 1);
+	gmsgOldWeapon = g_engfuncs.pfnRegUserMsg("OldWeapon", 1);
+	gmsgCustomIcon = g_engfuncs.pfnRegUserMsg("CustomIcon", -1);
 }

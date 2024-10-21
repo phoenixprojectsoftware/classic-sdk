@@ -27,8 +27,6 @@
 #ifdef CLIENT_DLL
 #include "hud.h"
 #include "com_weapons.h"
-#else
-extern bool IsBustingGame();
 #endif
 
 #define EGON_SWITCH_NARROW_TIME 0.75 // Time it takes to switch fire modes
@@ -103,6 +101,14 @@ bool CEgon::GetItemInfo(ItemInfo* p)
 	return true;
 }
 
+void CEgon::IncrementAmmo(CBasePlayer* pPlayer)
+{
+	if (pPlayer->GiveAmmo(1, "uranium", URANIUM_MAX_CARRY) >= 0)
+	{
+		EMIT_SOUND(pPlayer->edict(), CHAN_STATIC, "ctf/pow_backpack.wav", 0.5, ATTN_NORM);
+	}
+}
+
 #define EGON_PULSE_INTERVAL 0.1
 #define EGON_DISCHARGE_INTERVAL 0.1
 
@@ -126,11 +132,6 @@ bool CEgon::HasAmmo()
 
 void CEgon::UseAmmo(int count)
 {
-#ifndef CLIENT_DLL
-	if (IsBustingGame())
-		return;
-#endif
-
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= count)
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= count;
 	else
@@ -498,17 +499,7 @@ void CEgon::WeaponIdle()
 	m_deployed = true;
 }
 
-bool CEgon::CanHolster()
-{
-#ifndef CLIENT_DLL
-	if (IsBustingGame())
-	{
-		return false;
-	}
-#endif
 
-	return true;
-}
 
 void CEgon::EndAttack()
 {

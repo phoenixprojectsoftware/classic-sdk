@@ -32,6 +32,8 @@
 #define ACT_T_STRIKE 1030
 #define ACT_T_REARIDLE 1040
 
+constexpr int SF_TENTACLE_USE_LOWER_MODEL = 1 << 6;
+
 class CTentacle : public CBaseMonster
 {
 public:
@@ -260,7 +262,15 @@ void CTentacle::Spawn()
 	//Always interpolate tentacles since they don't actually move.
 	m_EFlags |= EFLAG_SLERP;
 
-	SET_MODEL(ENT(pev), "models/tentacle2.mdl");
+	if (pev->spawnflags & SF_TENTACLE_USE_LOWER_MODEL)
+	{
+		SET_MODEL(ENT(pev), "models/tentacle3.mdl");
+	}
+	else
+	{
+		SET_MODEL(ENT(pev), "models/tentacle2.mdl");
+	}
+
 	UTIL_SetSize(pev, Vector(-32, -32, 0), Vector(32, 32, 64));
 
 	pev->takedamage = DAMAGE_AIM;
@@ -298,6 +308,7 @@ void CTentacle::Spawn()
 void CTentacle::Precache()
 {
 	PRECACHE_MODEL("models/tentacle2.mdl");
+	PRECACHE_MODEL("models/tentacle3.mdl");
 
 	PRECACHE_SOUND("ambience/flies.wav");
 	PRECACHE_SOUND("ambience/squirm2.wav");
@@ -351,11 +362,11 @@ bool CTentacle::KeyValue(KeyValueData* pkvd)
 
 int CTentacle::Level(float dz)
 {
-	if (dz < 216)
+	if (dz < 96)
 		return 0;
-	if (dz < 408)
+	if (dz < 150)
 		return 1;
-	if (dz < 600)
+	if (dz < 288)
 		return 2;
 	return 3;
 }
@@ -366,11 +377,11 @@ float CTentacle::MyHeight()
 	switch (MyLevel())
 	{
 	case 1:
-		return 256;
+		return 136;
 	case 2:
-		return 448;
+		return 190;
 	case 3:
-		return 640;
+		return 328;
 	}
 	return 0;
 }
@@ -477,6 +488,8 @@ void CTentacle::Cycle()
 
 	DispatchAnimEvents();
 	StudioFrameAdvance();
+
+	UpdateShockEffect();
 
 	ChangeYaw(pev->yaw_speed);
 
@@ -1026,6 +1039,7 @@ bool CTentacle::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, floa
 void CTentacle::Killed(entvars_t* pevAttacker, int iGib)
 {
 	m_iGoalAnim = TENTACLE_ANIM_Pit_Idle;
+	ClearShockEffect();
 	return;
 }
 

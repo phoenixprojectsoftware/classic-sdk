@@ -124,13 +124,15 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 				HSPRITE* spr = gWR.GetAmmoPicFromWeapon(rgAmmoHistory[i].iId, rcPic);
 
 				int r, g, b;
-				UnpackRGB(r, g, b, RGB_YELLOWISH);
+				r = giR;
+				g = giG;
+				b = giB;
 				float scale = (rgAmmoHistory[i].DisplayTime - flTime) * 80;
 				ScaleColors(r, g, b, V_min(scale, 255));
 
 				// Draw the pic
 				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
-				int xpos = ScreenWidth - (rcPic.right - rcPic.left) - 4;
+				int xpos = ScreenWidth - 24;
 				if (spr && 0 != *spr) // weapon isn't loaded yet so just don't draw the pic
 				{					  // the dll has to make sure it has sent info the weapons you need
 					SPR_Set(*spr, r, g, b);
@@ -148,10 +150,14 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 					return true; // we don't know about the weapon yet, so don't draw anything
 
 				int r, g, b;
-				UnpackRGB(r, g, b, RGB_YELLOWISH);
+				r = giR;
+				g = giG;
+				b = giB;
 
-				if (!gWR.HasAmmo(weap))
-					UnpackRGB(r, g, b, RGB_REDISH); // if the weapon doesn't have ammo, display it as red
+				/*
+				if ( !gWR.HasAmmo( weap ) )
+					UnpackRGB(r,g,b, RGB_REDISH);	// if the weapon doesn't have ammo, display it as red
+					*/
 
 				float scale = (rgAmmoHistory[i].DisplayTime - flTime) * 80;
 				ScaleColors(r, g, b, V_min(scale, 255));
@@ -170,7 +176,9 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 
 				Rect rect = gHUD.GetSpriteRect(rgAmmoHistory[i].iId);
 
-				UnpackRGB(r, g, b, RGB_YELLOWISH);
+				r = giR;
+				g = giG;
+				b = giB;
 				float scale = (rgAmmoHistory[i].DisplayTime - flTime) * 80;
 				ScaleColors(r, g, b, V_min(scale, 255));
 

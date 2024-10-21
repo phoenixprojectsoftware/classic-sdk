@@ -21,8 +21,13 @@
 #include "parsemsg.h"
 #include "r_efx.h"
 
+#include "vgui_TeamFortressViewport.h"
+#include "vgui_ScorePanel.h"
+
 #include "particleman.h"
 extern IParticleMan* g_pParticleMan;
+
+extern int giTeamplay;
 
 extern BEAM* pBeam;
 extern BEAM* pBeam2;
@@ -88,10 +93,22 @@ void CHud::MsgFunc_InitHUD(const char* pszName, int iSize, void* pbuf)
 bool CHud::MsgFunc_GameMode(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
-	//Note: this user message could be updated to include multiple gamemodes, so make sure this checks for game mode 1
+
+	//Note: this user message could be updated to include multiple gamemodes
 	//See CHalfLifeTeamplay::UpdateGameMode
 	//TODO: define game mode constants
-	m_Teamplay = READ_BYTE() == 1;
+	m_Teamplay = giTeamplay = READ_BYTE();
+
+	if (gViewPort && !gViewPort->m_pScoreBoard)
+	{
+		gViewPort->CreateScoreBoard();
+		gViewPort->m_pScoreBoard->Initialize();
+
+		if (!gHUD.m_iIntermission)
+		{
+			gViewPort->HideScoreBoard();
+		}
+	}
 
 #ifdef STEAM_RICH_PRESENCE
 	if (m_Teamplay)
@@ -136,9 +153,7 @@ bool CHud::MsgFunc_Concuss(const char* pszName, int iSize, void* pbuf)
 	m_iConcussionEffect = READ_BYTE();
 	if (0 != m_iConcussionEffect)
 	{
-		int r, g, b;
-		UnpackRGB(r, g, b, RGB_YELLOWISH);
-		this->m_StatusIcons.EnableIcon("dmg_concuss", r, g, b);
+		this->m_StatusIcons.EnableIcon("dmg_concuss", giR, giG, giB);
 	}
 	else
 		this->m_StatusIcons.DisableIcon("dmg_concuss");

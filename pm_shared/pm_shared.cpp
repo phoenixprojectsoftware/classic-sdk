@@ -92,6 +92,7 @@ typedef struct hull_s
 #define STEP_SLOSH 6	// shallow liquid puddle
 #define STEP_WADE 7		// wading in liquid
 #define STEP_LADDER 8	// climbing ladder
+#define STEP_SNOW 9		// snow
 
 #define PLAYER_FATAL_FALL_SPEED 1024															  // approx 60 feet
 #define PLAYER_MAX_SAFE_FALL_SPEED 580															  // approx 20 feet
@@ -501,6 +502,25 @@ void PM_PlayStepSound(int step, float fvol)
 			break;
 		}
 		break;
+	case STEP_SNOW:
+		switch (irand)
+		{
+		// right foot
+		case 0:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow1.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 1:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow3.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		// left foot
+		case 2:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow2.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 3:
+			pmove->PM_PlaySound(CHAN_BODY, "player/pl_snow4.wav", fvol, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		}
+		break;
 	}
 }
 
@@ -523,6 +543,8 @@ int PM_MapTextureTypeStepType(char chTextureType)
 		return STEP_TILE;
 	case CHAR_TEX_SLOSH:
 		return STEP_SLOSH;
+	case CHAR_TEX_SNOW:
+		return STEP_SNOW;
 	}
 }
 
@@ -591,7 +613,8 @@ void PM_UpdateStepSound()
 	speed = Length(pmove->velocity);
 
 	// determine if we are on a ladder
-	const bool fLadder = (pmove->movetype == MOVETYPE_FLY); // IsOnLadder();
+	//The Barnacle Grapple sets the FL_IMMUNE_LAVA flag to indicate that the player is not on a ladder - Solokiller
+	const bool fLadder = pmove->movetype == MOVETYPE_FLY && (pmove->flags & FL_IMMUNE_LAVA) == 0; // IsOnLadder();
 
 	// UNDONE: need defined numbers for run, walk, crouch, crouch run velocities!!!!
 	if ((pmove->flags & FL_DUCKING) != 0 || fLadder)
@@ -2660,6 +2683,7 @@ void PM_Jump()
 
 	// See if user can super long jump?
 	const bool cansuperjump = atoi(pmove->PM_Info_ValueForKey(pmove->physinfo, "slj")) == 1;
+	const bool canjumppackjump = atoi(pmove->PM_Info_ValueForKey(pmove->physinfo, "jpj")) == 1;
 
 	// Acclerate upward
 	// If we are ducking...
@@ -2667,7 +2691,7 @@ void PM_Jump()
 	{
 		// Adjust for super long jump module
 		// UNDONE -- note this should be based on forward angles, not current velocity.
-		if (cansuperjump &&
+		if ((cansuperjump || canjumppackjump) &&
 			(pmove->cmd.buttons & IN_DUCK) != 0 &&
 			(pmove->flDuckTime > 0) &&
 			Length(pmove->velocity) > 50)
@@ -2680,6 +2704,11 @@ void PM_Jump()
 			}
 
 			pmove->velocity[2] = sqrt(2 * 800 * 56.0);
+
+			if (canjumppackjump)
+			{
+				pmove->PM_PlaySound(CHAN_STATIC, "ctf/pow_big_jump.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			}
 		}
 		else
 		{

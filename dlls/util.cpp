@@ -30,12 +30,20 @@
 #include "player.h"
 #include "weapons.h"
 #include "gamerules.h"
+#include "game.h"
 #include "UserMessages.h"
 
 float UTIL_WeaponTimeBase()
 {
 #if defined(CLIENT_WEAPONS)
-	return 0.0;
+	if (oldweapons.value == 1)
+	{
+		return gpGlobals->time;
+	}
+	else
+	{
+		return 0.0;
+	}
 #else
 	return gpGlobals->time;
 #endif
@@ -2564,4 +2572,14 @@ bool CRestore::BufferCheckZString(const char* string)
 			return true;
 	}
 	return false;
+}
+
+bool UTIL_IsMultiplayer()
+{
+	return g_pGameRules->IsMultiplayer();
+}
+
+bool UTIL_IsCTF()
+{
+	return g_pGameRules->IsCTF();
 }

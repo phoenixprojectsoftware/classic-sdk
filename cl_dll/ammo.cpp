@@ -73,14 +73,10 @@ void WeaponsResource::LoadWeaponSprites(WEAPON* pWeapon)
 {
 	int i, iRes;
 
-	if (ScreenWidth > 2560 && ScreenHeight > 1600)
-		iRes = 2560;
-	else if (ScreenWidth >= 1280 && ScreenHeight > 720)
-		iRes = 1280;
-	else if (ScreenWidth >= 640)
-		iRes = 640;
-	else
+	if (ScreenWidth < 640)
 		iRes = 320;
+	else
+		iRes = 640;
 
 	char sz[256];
 
@@ -327,17 +323,16 @@ bool CHudAmmo::VidInit()
 	// If we've already loaded weapons, let's get new sprites
 	gWR.LoadAllWeaponSprites();
 
-	int nScale = 1;
-
-	if (ScreenWidth > 2560 && ScreenHeight > 1600)
-		nScale = 4;
-	else if (ScreenWidth >= 1280 && ScreenHeight > 720)
-		nScale = 3;
-	else if (ScreenWidth >= 640)
-		nScale = 2;
-
-	giABWidth = 10 * nScale;
-	giABHeight = 2 * nScale;
+	if (ScreenWidth >= 640)
+	{
+		giABWidth = 20;
+		giABHeight = 4;
+	}
+	else
+	{
+		giABWidth = 10;
+		giABHeight = 2;
+	}
 
 	return true;
 }
@@ -890,12 +885,21 @@ bool CHudAmmo::Draw(float flTime)
 	if (m_fFade > 0)
 		m_fFade -= (gHUD.m_flTimeDelta * 20);
 
-	UnpackRGB(r, g, b, RGB_YELLOWISH);
+	if (gHUD.isNightVisionOn())
+	{
+		gHUD.getNightVisionHudItemColor(r, g, b);
+	}
+	else
+	{
+		r = giR;
+		g = giG;
+		b = giB;
 
-	ScaleColors(r, g, b, a);
+		ScaleColors(r, g, b, a);
+	}
 
+	// Does this weapon have a clip?
 	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-	y += (int)(gHUD.m_iFontHeight * 0.2f);
 
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
@@ -919,7 +923,16 @@ bool CHudAmmo::Draw(float flTime)
 
 			x += AmmoWidth / 2;
 
-			UnpackRGB(r, g, b, RGB_YELLOWISH);
+			if (gHUD.isNightVisionOn())
+			{
+				gHUD.getNightVisionHudItemColor(r, g, b);
+			}
+			else
+			{
+				r = giR;
+				g = giG;
+				b = giB;
+			}
 
 			// draw the | bar
 			FillRGBA(x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a);
@@ -927,7 +940,11 @@ bool CHudAmmo::Draw(float flTime)
 			x += iBarWidth + AmmoWidth / 2;
 
 			// GL Seems to need this
-			ScaleColors(r, g, b, a);
+			if (!gHUD.isNightVisionOn())
+			{
+				ScaleColors(r, g, b, a);
+			}
+
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);
 		}
 		else
@@ -984,13 +1001,33 @@ int DrawBar(int x, int y, int width, int height, float f)
 		// Always show at least one pixel if we have ammo.
 		if (w <= 0)
 			w = 1;
-		UnpackRGB(r, g, b, RGB_GREENISH);
+
+		if (gHUD.isNightVisionOn())
+		{
+			gHUD.getNightVisionHudItemColor(r, g, b);
+		}
+		else
+		{
+			r = giR;
+			g = giG;
+			b = giB;
+		}
+
 		FillRGBA(x, y, w, height, r, g, b, 255);
 		x += w;
 		width -= w;
 	}
 
-	UnpackRGB(r, g, b, RGB_YELLOWISH);
+	if (gHUD.isNightVisionOn())
+	{
+		gHUD.getNightVisionHudItemColor(r, g, b);
+	}
+	else
+	{
+		r = giR;
+		g = giG;
+		b = giB;
+	}
 
 	FillRGBA(x, y, width, height, r, g, b, 128);
 
@@ -1066,14 +1103,23 @@ bool CHudAmmo::DrawWList(float flTime)
 	{
 		int iWidth;
 
-		UnpackRGB(r, g, b, RGB_YELLOWISH);
-
 		if (iActiveSlot == i)
 			a = 255;
 		else
 			a = 192;
 
-		ScaleColors(r, g, b, 255);
+		if (gHUD.isNightVisionOn())
+		{
+			gHUD.getNightVisionHudItemColor(r, g, b);
+		}
+		else
+		{
+			r = giR;
+			g = giG;
+			b = giB;
+			ScaleColors(r, g, b, 255);
+		}
+
 		SPR_Set(gHUD.GetSprite(m_HUD_bucket0 + i), r, g, b);
 
 		// make active slot wide enough to accomodate gun pictures
@@ -1118,7 +1164,16 @@ bool CHudAmmo::DrawWList(float flTime)
 				if (!p || 0 == p->iId)
 					continue;
 
-				UnpackRGB(r, g, b, RGB_YELLOWISH);
+				if (gHUD.isNightVisionOn())
+				{
+					gHUD.getNightVisionHudItemColor(r, g, b);
+				}
+				else
+				{
+					r = giR;
+					g = giG;
+					b = giB;
+				}
 
 				// if active, then we must have ammo.
 
@@ -1135,7 +1190,19 @@ bool CHudAmmo::DrawWList(float flTime)
 					// Draw Weapon if Red if no ammo
 
 					if (gWR.HasAmmo(p))
+					{
+						if (gHUD.isNightVisionOn())
+						{
+							gHUD.getNightVisionHudItemColor(r, g, b);
+						}
+						else
+						{
+							r = giR;
+							g = giG;
+							b = giB;
+						}
 						ScaleColors(r, g, b, 192);
+					}
 					else
 					{
 						UnpackRGB(r, g, b, RGB_REDISH);
@@ -1159,7 +1226,16 @@ bool CHudAmmo::DrawWList(float flTime)
 		{
 			// Draw Row of weapons.
 
-			UnpackRGB(r, g, b, RGB_YELLOWISH);
+			if (gHUD.isNightVisionOn())
+			{
+				gHUD.getNightVisionHudItemColor(r, g, b);
+			}
+			else
+			{
+				r = giR;
+				g = giG;
+				b = giB;
+			}
 
 			for (int iPos = 0; iPos < MAX_WEAPON_POSITIONS; iPos++)
 			{
@@ -1170,7 +1246,16 @@ bool CHudAmmo::DrawWList(float flTime)
 
 				if (gWR.HasAmmo(p))
 				{
-					UnpackRGB(r, g, b, RGB_YELLOWISH);
+					if (gHUD.isNightVisionOn())
+					{
+						gHUD.getNightVisionHudItemColor(r, g, b);
+					}
+					else
+					{
+						r = giR;
+						g = giG;
+						b = giB;
+					}
 					a = 128;
 				}
 				else
@@ -1210,7 +1295,7 @@ client_sprite_t* GetSpriteList(client_sprite_t* pList, const char* psz, int iRes
 
 	while (0 != i--)
 	{
-		if ((p->iRes == iRes) && (0 == strcmp(psz, p->szName)))
+		if ((0 == strcmp(psz, p->szName)) && (p->iRes == iRes))
 			return p;
 		p++;
 	}

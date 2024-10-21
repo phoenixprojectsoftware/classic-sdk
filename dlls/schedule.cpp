@@ -76,6 +76,23 @@ void CBaseMonster::ChangeSchedule(Schedule_t* pNewSchedule)
 {
 	ASSERT(pNewSchedule != NULL);
 
+	if (m_pSchedule && m_pSchedule->pTasklist && m_pSchedule->pTasklist[m_iScheduleIndex].iTask == TASK_DIE)
+	{
+		const char* className = STRING(pev->classname);
+
+		//TODO: not the correct way to check for missing classname, is like this in vanilla Op4
+		if (className)
+		{
+			ALERT(at_aiconsole, "ChangeSchedule called for dead monster class %s\n", className);
+		}
+		else
+		{
+			ALERT(at_console, "ChangeSchedule called for dead monster\n");
+		}
+
+		return;
+	}
+
 	m_pSchedule = pNewSchedule;
 	m_iScheduleIndex = 0;
 	m_iTaskStatus = TASKSTATUS_NEW;
@@ -537,6 +554,14 @@ void CBaseMonster::RunTask(Task_t* pTask)
 		}
 		break;
 	}
+
+	case TASK_WAIT_FOR_JUMP:
+		if ((pev->flags & FL_ONGROUND) != 0)
+		{
+			if (!HasConditions(bits_COND_TASK_FAILED))
+				TaskIsComplete();
+		}
+		break;
 	}
 }
 
@@ -885,6 +910,34 @@ void CBaseMonster::StartTask(Task_t* pTask)
 		}
 		break;
 	}
+
+	case TASK_JUMP_TO_TARGET:
+	{
+		if ((m_hTargetEnt->pev->origin - pev->origin).Length() >= 1.0)
+		{
+			if (!m_hTargetEnt || !JumpToTarget(ACT_LEAP, 2.0))
+			{
+				TaskFail();
+				ALERT(at_aiconsole, "%s Failed to reach target!!!\n", STRING(pev->classname));
+				RouteClear();
+			}
+		}
+
+		TaskComplete();
+		break;
+	}
+
+	case TASK_WAIT_FOR_JUMP:
+	{
+		if ((pev->flags & FL_ONGROUND) != 0)
+		{
+			if (!HasConditions(bits_COND_TASK_FAILED))
+				TaskIsComplete();
+		}
+
+		break;
+	}
+
 	case TASK_RUN_TO_TARGET:
 	case TASK_WALK_TO_TARGET:
 	{
@@ -1508,4 +1561,24 @@ Schedule_t* CBaseMonster::GetSchedule()
 	}
 
 	return &slError[0];
+}
+
+bool CBaseMonster::JumpToTarget(Activity movementAct, float waitTime)
+{
+	m_movementGoal = MOVEGOAL_TARGETENT;
+	m_movementActivity = movementAct;
+	m_moveWaitTime = waitTime;
+
+	pev->origin.z += 1;
+
+	if ((pev->flags & FL_ONGROUND) != 0)
+		pev->flags &= ~FL_ONGROUND;
+
+	g_engfuncs.pfnCVarGetFloat("sv_gravity");
+
+	pev->velocity = m_hTargetEnt->pev->origin + Vector(0, 0, 160) - pev->origin;
+
+	pev->velocity.z *= pev->origin.z * sqrt(160.0 / (pev->origin.z * 0.5)) / 160.0;
+
+	return true;
 }

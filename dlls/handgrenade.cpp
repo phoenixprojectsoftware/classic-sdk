@@ -65,6 +65,21 @@ bool CHandGrenade::GetItemInfo(ItemInfo* p)
 	return true;
 }
 
+void CHandGrenade::IncrementAmmo(CBasePlayer* pPlayer)
+{
+#ifndef CLIENT_DLL
+	//TODO: not sure how useful this is given that the player has to have this weapon for this method to be called
+	if (!pPlayer->HasNamedPlayerItem("weapon_handgrenade"))
+	{
+		pPlayer->GiveNamedItem("weapon_handgrenade");
+	}
+#endif
+
+	if (pPlayer->GiveAmmo(1, "Hand Grenade", HANDGRENADE_MAX_CARRY) >= 0)
+	{
+		EMIT_SOUND(pPlayer->edict(), CHAN_STATIC, "ctf/pow_backpack.wav", 0.5, ATTN_NORM);
+	}
+}
 
 bool CHandGrenade::Deploy()
 {
@@ -130,10 +145,9 @@ void CHandGrenade::WeaponIdle()
 		else
 			angThrow.x = -10 + angThrow.x * ((90 + 10) / 90.0);
 
-		static float flMultiplier = 6.5f;
-		float flVel = (90 - angThrow.x) * flMultiplier;
-		if (flVel > 1000)
-			flVel = 1000;
+		float flVel = (90 - angThrow.x) * 4;
+		if (flVel > 500)
+			flVel = 500;
 
 		UTIL_MakeVectors(angThrow);
 

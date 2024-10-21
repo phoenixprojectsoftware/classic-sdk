@@ -176,8 +176,18 @@ void CGib::SpawnHeadGib(entvars_t* pevVictim)
 	pGib->LimitVelocity();
 }
 
-void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
+void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, const GibData& gibData)
 {
+	//Track the number of uses of a particular submodel so we can avoid spawning too many of the same
+	auto pLimitTracking = gibData.Limits != nullptr ? reinterpret_cast<int*>(stackalloc(sizeof(int) * gibData.SubModelCount)) : nullptr;
+
+	if (pLimitTracking)
+	{
+		memset(pLimitTracking, 0, sizeof(int) * gibData.SubModelCount);
+	}
+
+	auto currentBody = 0;
+
 	int cSplat;
 
 	for (cSplat = 0; cSplat < cGibs; cSplat++)
@@ -191,17 +201,22 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
 		}
 		else
 		{
-			if (human)
+			pGib->Spawn(gibData.ModelName);
+
+			if (pLimitTracking)
 			{
-				// human pieces
-				pGib->Spawn("models/hgibs.mdl");
-				pGib->pev->body = RANDOM_LONG(1, HUMAN_GIB_COUNT - 1); // start at one to avoid throwing random amounts of skulls (0th gib)
+				if (pLimitTracking[currentBody] >= gibData.Limits[currentBody].MaxGibs)
+				{
+					++currentBody;
+				}
+
+				pGib->pev->body = currentBody;
+
+				++pLimitTracking[currentBody];
 			}
 			else
 			{
-				// aliens
-				pGib->Spawn("models/agibs.mdl");
-				pGib->pev->body = RANDOM_LONG(0, ALIEN_GIB_COUNT - 1);
+				pGib->pev->body = RANDOM_LONG(gibData.FirstSubModel, gibData.SubModelCount - 1);
 			}
 		}
 
@@ -246,6 +261,17 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
 		}
 		pGib->LimitVelocity();
 	}
+
+	stackfree(pLimitTracking);
+}
+
+// start at one to avoid throwing random amounts of skulls (0th gib)
+const GibData HumanGibs = {"models/hgibs.mdl", 1, HUMAN_GIB_COUNT};
+const GibData AlienGibs = {"models/agibs.mdl", 0, ALIEN_GIB_COUNT};
+
+void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
+{
+	SpawnRandomGibs(pevVictim, cGibs, human ? HumanGibs : AlienGibs);
 }
 
 
@@ -256,7 +282,8 @@ bool CBaseMonster::HasHumanGibs()
 	if (myClass == CLASS_HUMAN_MILITARY ||
 		myClass == CLASS_PLAYER_ALLY ||
 		myClass == CLASS_HUMAN_PASSIVE ||
-		myClass == CLASS_PLAYER)
+		myClass == CLASS_PLAYER ||
+		myClass == CLASS_HUMAN_MILITARY_FRIENDLY)
 
 		return true;
 
@@ -273,7 +300,8 @@ bool CBaseMonster::HasAlienGibs()
 		myClass == CLASS_ALIEN_PASSIVE ||
 		myClass == CLASS_INSECT ||
 		myClass == CLASS_ALIEN_PREDATOR ||
-		myClass == CLASS_ALIEN_PREY)
+		myClass == CLASS_ALIEN_PREY ||
+		myClass == CLASS_ALIEN_RACE_X)
 
 		return true;
 
@@ -631,6 +659,8 @@ void CBaseMonster::Killed(entvars_t* pevAttacker, int iGib)
 	//pev->enemy = ENT( pevAttacker );//why? (sjb)
 
 	m_IdealMonsterState = MONSTERSTATE_DEAD;
+
+	ClearShockEffect();
 }
 
 //
@@ -1442,6 +1472,14 @@ void CBaseEntity::FireBullets(unsigned int cShots, Vector vecSrc, Vector vecDirS
 			else
 				switch (iBulletType)
 				{
+				case BULLET_PLAYER_MP5:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgMP5, vecDir, &tr, DMG_BULLET);
+					break;
+
+				case BULLET_PLAYER_357:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg357, vecDir, &tr, DMG_BULLET);
+					break;
+
 				case BULLET_PLAYER_BUCKSHOT:
 					// make distance based!
 					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, DMG_BULLET);
@@ -1471,6 +1509,22 @@ void CBaseEntity::FireBullets(unsigned int cShots, Vector vecSrc, Vector vecDirS
 					pEntity->TraceAttack(pevAttacker, gSkillData.monDmg12MM, vecDir, &tr, DMG_BULLET);
 					TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
 					DecalGunshot(&tr, iBulletType);
+					break;
+
+				case BULLET_PLAYER_556:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg556, vecDir, &tr, DMG_BULLET);
+					TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
+					DecalGunshot(&tr, iBulletType);
+					break;
+
+				case BULLET_PLAYER_762:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg762, vecDir, &tr, DMG_BULLET);
+					TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
+					DecalGunshot(&tr, iBulletType);
+					break;
+
+				case BULLET_PLAYER_EAGLE:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgEagle, vecDir, &tr, DMG_BULLET);
 					break;
 
 				case BULLET_NONE: // FIX
@@ -1562,6 +1616,53 @@ Vector CBaseEntity::FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector
 
 				case BULLET_PLAYER_357:
 					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg357, vecDir, &tr, DMG_BULLET);
+					break;
+
+				case BULLET_PLAYER_556:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg556, vecDir, &tr, DMG_BULLET);
+					break;
+
+				case BULLET_PLAYER_762:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg762, vecDir, &tr, DMG_BULLET);
+
+					if (tr.pHit && tr.pHit->v.takedamage != DAMAGE_NO)
+					{
+						EMIT_SOUND_DYN(tr.pHit, CHAN_BODY, "weapons/xbow_hitbod2.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+
+						auto pHitEntity = Instance(tr.pHit);
+
+						if (pHitEntity->BloodColor() != DONT_BLEED)
+						{
+							MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, EyePosition());
+							WRITE_BYTE(TE_BLOODSTREAM);
+
+							WRITE_COORD(tr.vecEndPos.x);
+							WRITE_COORD(tr.vecEndPos.y);
+							WRITE_COORD(tr.vecEndPos.z);
+
+							const auto direction = vecSrc - tr.vecEndPos;
+
+							WRITE_COORD(direction.x);
+							WRITE_COORD(direction.y);
+							WRITE_COORD(direction.z);
+
+							if (pHitEntity->BloodColor() == BLOOD_COLOR_RED)
+							{
+								WRITE_BYTE(70);
+							}
+							else
+							{
+								WRITE_BYTE(pHitEntity->BloodColor());
+							}
+
+							WRITE_BYTE(150);
+							MESSAGE_END();
+						}
+					}
+					break;
+
+				case BULLET_PLAYER_EAGLE:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgEagle, vecDir, &tr, DMG_BULLET);
 					break;
 
 				case BULLET_NONE: // FIX

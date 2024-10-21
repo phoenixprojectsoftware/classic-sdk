@@ -15,11 +15,11 @@
 
 #pragma once
 
-extern void GameDLLInit( void );
+extern void GameDLLInit();
 void GameDLLShutdown();
 
 
-extern cvar_t	displaysoundlist;
+extern cvar_t displaysoundlist;
 
 // multiplayer server rules
 extern cvar_t fragsleft;
@@ -43,7 +43,13 @@ extern cvar_t mp_chattime;
 
 extern cvar_t sv_allowbunnyhopping;
 
-extern cvar_t sv_busters;
+extern cvar_t ctf_capture;
+extern cvar_t oldweapons;
+extern cvar_t multipower;
+extern cvar_t ctf_autoteam;
+extern cvar_t coopplay;
+extern cvar_t coopweprespawn;
+extern cvar_t spamdelay;
 
 // Engine Cvars
 inline cvar_t* g_psv_gravity;

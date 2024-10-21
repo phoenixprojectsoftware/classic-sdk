@@ -29,14 +29,32 @@
 #include "soundent.h"
 #include "decals.h"
 #include "gamerules.h"
+#include "game.h"
 #include "UserMessages.h"
 
 #define NOT_USED 255
 
 #define TRACER_FREQ 4 // Tracers fire every fourth bullet
 
-extern bool IsBustingGame();
-extern bool IsPlayerBusting(CBaseEntity* pPlayer);
+int UTIL_DefaultPlaybackFlags()
+{
+	if (oldweapons.value == 1)
+	{
+		return 0;
+	}
+
+	return FEV_NOTHOST;
+}
+
+bool UTIL_DefaultUseDecrement()
+{
+	return oldweapons.value == 0;
+}
+
+bool UTIL_UseOldWeapons()
+{
+	return oldweapons.value != 0;
+}
 
 //=========================================================
 // MaxAmmoCarry - pass in a name and this function will tell
@@ -324,6 +342,33 @@ void W_Precache()
 	// hornetgun
 	UTIL_PrecacheOtherWeapon("weapon_hornetgun");
 
+	UTIL_PrecacheOtherWeapon("weapon_grapple");
+
+	UTIL_PrecacheOtherWeapon("weapon_eagle");
+
+	UTIL_PrecacheOtherWeapon("weapon_pipewrench");
+
+	UTIL_PrecacheOtherWeapon("weapon_m249");
+	UTIL_PrecacheOther("ammo_556");
+
+	UTIL_PrecacheOtherWeapon("weapon_displacer");
+
+	UTIL_PrecacheOtherWeapon("weapon_sporelauncher");
+	UTIL_PrecacheOther("ammo_spore");
+
+	UTIL_PrecacheOtherWeapon("weapon_shockrifle");
+
+	UTIL_PrecacheOtherWeapon("weapon_sniperrifle");
+	UTIL_PrecacheOther("ammo_762");
+
+	UTIL_PrecacheOtherWeapon("weapon_knife");
+
+	UTIL_PrecacheOtherWeapon("weapon_penguin");
+
+	PRECACHE_SOUND("weapons/spore_hit1.wav");
+	PRECACHE_SOUND("weapons/spore_hit2.wav");
+	PRECACHE_SOUND("weapons/spore_hit3.wav");
+
 	if (g_pGameRules->IsDeathmatch())
 	{
 		UTIL_PrecacheOther("weaponbox"); // container for dropped deathmatch weapons
@@ -450,15 +495,6 @@ void CBasePlayerItem::FallThink()
 	{
 		SetThink(NULL);
 	}
-
-	// This weapon is an egon, it has no owner and we're in busting mode, so just remove it when it hits the ground
-	if (IsBustingGame() && FNullEnt(pev->owner))
-	{
-		if (!strcmp("weapon_egon", STRING(pev->classname)))
-		{
-			UTIL_Remove(this);
-		}
-	}
 }
 
 //=========================================================
@@ -549,9 +585,6 @@ void CBasePlayerItem::DefaultTouch(CBaseEntity* pOther)
 {
 	// if it's not a player, ignore
 	if (!pOther->IsPlayer())
-		return;
-
-	if (IsPlayerBusting(pOther))
 		return;
 
 	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
@@ -740,6 +773,12 @@ bool CBasePlayerWeapon::AddPrimaryAmmo(CBasePlayerWeapon* origin, int iCount, ch
 {
 	int iIdAmmo;
 
+	//Don't double for single shot weapons (e.g. RPG)
+	if ((m_pPlayer->m_iItems & CTFItem::Backpack) != 0 && iMaxClip > 1)
+	{
+		iMaxClip *= 2;
+	}
+
 	if (iMaxClip < 1)
 	{
 		m_iClip = -1;
@@ -829,7 +868,7 @@ bool CBasePlayerWeapon::IsUseable()
 	}
 
 	// clip is empty (or nonexistant) and the player has no more ammo of this type.
-	return CanDeploy();
+	return false;
 }
 
 bool CBasePlayerWeapon::DefaultDeploy(const char* szViewModel, const char* szWeaponModel, int iAnim, const char* szAnimExt, int body)
@@ -1399,7 +1438,6 @@ void CBasePlayerWeapon::PrintState()
 
 	ALERT(at_console, "m_iclip:  %i\n", m_iClip);
 }
-
 
 TYPEDESCRIPTION CRpg::m_SaveData[] =
 	{
