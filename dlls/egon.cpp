@@ -240,20 +240,6 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 
 	if (pEntity == NULL)
 		return;
-
-	if (g_pGameRules->IsMultiplayer())
-	{
-		if (m_pSprite && 0 != pEntity->pev->takedamage)
-		{
-			m_pSprite->pev->effects &= ~EF_NODRAW;
-		}
-		else if (m_pSprite)
-		{
-			m_pSprite->pev->effects |= EF_NODRAW;
-		}
-	}
-
-
 #endif
 
 	float timedist;
@@ -399,8 +385,8 @@ void CEgon::CreateEffect()
 	m_pBeam->SetFlags(BEAM_FSINE);
 	m_pBeam->SetEndAttachment(1);
 	m_pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY; // Flag these to be destroyed on save/restore or level transition
-	m_pBeam->pev->flags |= FL_SKIPLOCALHOST;
-	m_pBeam->pev->owner = m_pPlayer->edict();
+	//m_pBeam->pev->flags |= FL_SKIPLOCALHOST;
+	//m_pBeam->pev->owner = m_pPlayer->edict();
 
 	m_pNoise = CBeam::BeamCreate(EGON_BEAM_SPRITE, 55);
 	m_pNoise->PointEntInit(pev->origin, m_pPlayer->entindex());

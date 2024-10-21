@@ -107,6 +107,7 @@ bool CHudDeathNotice::VidInit()
 bool CHudDeathNotice::Draw(float flTime)
 {
 	int x, y, r, g, b;
+	int gap = 20;
 
 	SCREENINFO screenInfo;
 	screenInfo.iSize = sizeof(SCREENINFO);
