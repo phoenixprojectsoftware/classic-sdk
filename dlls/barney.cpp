@@ -27,6 +27,7 @@
 #include "scripted.h"
 #include "weapons.h"
 #include "soundent.h"
+#include "game.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -396,12 +397,22 @@ void CBarney::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/barney.mdl");
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		SET_MODEL(ENT(pev), "models/barney.mdl");
+	else
+		SET_MODEL(ENT(pev), "models/germanmodels/barney.mdl");
+	#endif
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_RED;
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
 	pev->health = gSkillData.barneyHealth;
 	pev->view_ofs = Vector(0, 0, 50);  // position of the eyes relative to monster's origin.
 	m_flFieldOfView = VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so npc will notice player and say hello
@@ -422,6 +433,7 @@ void CBarney::Spawn()
 void CBarney::Precache()
 {
 	PRECACHE_MODEL("models/barney.mdl");
+	PRECACHE_MODEL("models/germanmodels/barney.mdl");
 
 	PRECACHE_SOUND("barney/ba_attack1.wav");
 	PRECACHE_SOUND("barney/ba_attack2.wav");
@@ -807,7 +819,13 @@ void CDeadBarney::Spawn()
 	pev->effects = 0;
 	pev->yaw_speed = 8;
 	pev->sequence = 0;
-	m_bloodColor = BLOOD_COLOR_RED;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
 
 	pev->sequence = LookupSequence(m_szPoses[m_iPose]);
 	if (pev->sequence == -1)

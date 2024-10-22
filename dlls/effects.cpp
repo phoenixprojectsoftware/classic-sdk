@@ -22,6 +22,7 @@
 #include "decals.h"
 #include "func_break.h"
 #include "shake.h"
+#include "game.h"
 
 #define SF_GIBSHOOTER_REPEATABLE 1 // allows a gibshooter to be refired
 
@@ -1384,7 +1385,7 @@ LINK_ENTITY_TO_CLASS(gibshooter, CGibShooter);
 
 void CGibShooter::Precache()
 {
-	if (g_Language == LANGUAGE_GERMAN)
+	if (g_Language == LANGUAGE_GERMAN && german.value == 1)
 	{
 		m_iGibModelIndex = PRECACHE_MODEL("models/germanygibs.mdl");
 	}

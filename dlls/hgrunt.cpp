@@ -41,6 +41,7 @@
 #include "soundent.h"
 #include "effects.h"
 #include "customentity.h"
+#include "game.h"
 
 int g_fGruntQuestion; // true if an idle grunt asked a question. Cleared when someone answers.
 
@@ -980,12 +981,24 @@ void CHGrunt::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/hgrunt.mdl");
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		SET_MODEL(ENT(pev), "models/hgrunt.mdl");
+	else
+		SET_MODEL(ENT(pev), "models/germanmodels/hgrunt.mdl");
+	#endif
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_RED;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
+
 	pev->effects = 0;
 	pev->health = gSkillData.hgruntHealth;
 	m_flFieldOfView = 0.2; // indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -1046,6 +1059,7 @@ void CHGrunt::Spawn()
 void CHGrunt::Precache()
 {
 	PRECACHE_MODEL("models/hgrunt.mdl");
+	PRECACHE_MODEL("models/germanmodels/hgrunt.mdl");
 
 	PRECACHE_SOUND("hgrunt/gr_mgun1.wav");
 	PRECACHE_SOUND("hgrunt/gr_mgun2.wav");
@@ -2423,13 +2437,29 @@ LINK_ENTITY_TO_CLASS(monster_hgrunt_dead, CDeadHGrunt);
 //=========================================================
 void CDeadHGrunt::Spawn()
 {
-	PRECACHE_MODEL("models/hgrunt.mdl");
-	SET_MODEL(ENT(pev), "models/hgrunt.mdl");
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+	{
+		PRECACHE_MODEL("models/hgrunt.mdl");
+		SET_MODEL(ENT(pev), "models/hgrunt.mdl");
+	}
+	else
+	{
+		PRECACHE_MODEL("models/germanmodels/hgrunt.mdl");
+		SET_MODEL(ENT(pev), "models/germanmodels/hgrunt.mdl");
+	}
+	#endif
 
 	pev->effects = 0;
 	pev->yaw_speed = 8;
 	pev->sequence = 0;
-	m_bloodColor = BLOOD_COLOR_RED;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
 
 	pev->sequence = LookupSequence(m_szPoses[m_iPose]);
 

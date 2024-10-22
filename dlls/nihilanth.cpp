@@ -20,6 +20,7 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "effects.h"
+#include "game.h"
 
 #define N_SCALE 15
 #define N_SPHERES 20
@@ -34,7 +35,15 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	int Classify() override { return CLASS_ALIEN_MILITARY; }
-	int BloodColor() override { return BLOOD_COLOR_YELLOW; }
+
+	int BloodColor() override 
+	{ 
+		if (german.value == 0)
+			return BLOOD_COLOR_YELLOW;
+		else
+			return DONT_BLEED;
+	}
+
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 	void GibMonster() override;
 

@@ -278,12 +278,25 @@ void CHAssassin::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/hassassin.mdl");
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		SET_MODEL(ENT(pev), "models/hassassin.mdl");
+	else
+		SET_MODEL(ENT(pev), "models/germanmmodels/hassassin.mdl");
+	#endif
+
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_RED;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
+
 	pev->effects = 0;
 	pev->health = gSkillData.hassassinHealth;
 	m_flFieldOfView = VIEW_FIELD_WIDE; // indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -306,6 +319,7 @@ void CHAssassin::Spawn()
 void CHAssassin::Precache()
 {
 	PRECACHE_MODEL("models/hassassin.mdl");
+	PRECACHE_MODEL("models/germanmodels/hassassin.mdl");
 
 	PRECACHE_SOUND("weapons/pl_gun1.wav");
 	PRECACHE_SOUND("weapons/pl_gun2.wav");

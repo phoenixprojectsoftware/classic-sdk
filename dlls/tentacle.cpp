@@ -25,6 +25,7 @@
 #include "monsters.h"
 #include "weapons.h"
 #include "soundent.h"
+#include "game.h"
 
 
 #define ACT_T_IDLE 1010
@@ -266,7 +267,12 @@ void CTentacle::Spawn()
 	pev->takedamage = DAMAGE_AIM;
 	pev->flags |= FL_MONSTER;
 
-	m_bloodColor = BLOOD_COLOR_GREEN;
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif
 
 	SetThink(&CTentacle::Start);
 	SetTouch(&CTentacle::HitTouch);

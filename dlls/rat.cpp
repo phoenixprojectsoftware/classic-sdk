@@ -21,6 +21,7 @@
 #include "cbase.h"
 #include "monsters.h"
 #include "schedule.h"
+#include "game.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -76,7 +77,13 @@ void CRat::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_RED;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_RED;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif
 	pev->health = 8;
 	pev->view_ofs = Vector(0, 0, 6); // position of the eyes relative to monster's origin.
 	m_flFieldOfView = 0.5;			 // indicates the width of this monster's forward view cone ( as a dotproduct result )

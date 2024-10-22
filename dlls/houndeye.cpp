@@ -334,7 +334,13 @@ void CHoundeye::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_YELLOW;
+
+#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif 
 	pev->effects = 0;
 	pev->health = gSkillData.houndeyeHealth;
 	pev->yaw_speed = 5;	   //!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?

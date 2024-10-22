@@ -21,6 +21,7 @@
 #include "player.h"
 #include "soundent.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum w_squeak_e
 {
@@ -39,7 +40,15 @@ class CSqueakGrenade : public CGrenade
 	int Classify() override;
 	void EXPORT SuperBounceTouch(CBaseEntity* pOther);
 	void EXPORT HuntThink();
-	int BloodColor() override { return BLOOD_COLOR_YELLOW; }
+
+	int BloodColor() override 
+	{ 
+		if (german.value == 0)
+			return BLOOD_COLOR_YELLOW;
+		else
+			return DONT_BLEED;
+	}
+
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 	void GibMonster() override;
 

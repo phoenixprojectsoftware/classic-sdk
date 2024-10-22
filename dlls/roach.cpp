@@ -23,6 +23,7 @@
 #include "schedule.h"
 #include "soundent.h"
 #include "decals.h"
+#include "game.h"
 
 #define ROACH_IDLE 0
 #define ROACH_BORED 1
@@ -125,7 +126,13 @@ void CRoach::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_YELLOW;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_YELLOW;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif
 	pev->effects = 0;
 	pev->health = 1;
 	m_flFieldOfView = 0.5; // indicates the width of this monster's forward view cone ( as a dotproduct result )

@@ -38,6 +38,7 @@ extern cvar_t teamlist;
 extern cvar_t teamoverride;
 extern cvar_t defaultteam;
 extern cvar_t allowmonsters;
+extern cvar_t german;
 extern cvar_t allow_spectators;
 extern cvar_t mp_chattime;
 

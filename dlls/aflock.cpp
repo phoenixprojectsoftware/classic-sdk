@@ -20,6 +20,7 @@
 #include "cbase.h"
 #include "monsters.h"
 #include "squadmonster.h"
+#include "game.h"
 
 #define AFLOCK_MAX_RECRUIT_RADIUS 1024
 #define AFLOCK_FLY_SPEED 125
@@ -335,8 +336,12 @@ void CFlockingFlyer::SpawnCommonCode()
 	pev->takedamage = DAMAGE_YES;
 	pev->health = 10;
 
-	m_bloodColor = BLOOD_COLOR_GREEN;
-
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif
 	m_fPathBlocked = false; // obstacles will be detected
 	m_flFieldOfView = 0.2;
 

@@ -28,6 +28,7 @@
 #include "animation.h"
 #include "effects.h"
 #include "weapons.h"
+#include "game.h"
 
 #define SEARCH_RETRY 16
 
@@ -479,7 +480,14 @@ void CIchthyosaur::Spawn()
 
 	pev->solid = SOLID_BBOX;
 	pev->movetype = MOVETYPE_FLY;
-	m_bloodColor = BLOOD_COLOR_GREEN;
+
+#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif 
+
 	pev->health = gSkillData.ichthyosaurHealth;
 	pev->view_ofs = Vector(0, 0, 16);
 	m_flFieldOfView = VIEW_FIELD_WIDE;

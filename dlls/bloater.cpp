@@ -21,6 +21,7 @@
 #include "cbase.h"
 #include "monsters.h"
 #include "schedule.h"
+#include "game.h"
 
 
 //=========================================================
@@ -196,7 +197,13 @@ void CBloater::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_FLY;
 	pev->spawnflags |= FL_FLY;
-	m_bloodColor = BLOOD_COLOR_GREEN;
+
+#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif 
 	pev->health = 40;
 	pev->view_ofs = VEC_VIEW; // position of the eyes relative to monster's origin.
 	m_flFieldOfView = 0.5;	  // indicates the width of this monster's forward view cone ( as a dotproduct result )

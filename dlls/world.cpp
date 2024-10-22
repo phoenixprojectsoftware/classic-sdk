@@ -33,6 +33,7 @@
 #include "weapons.h"
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
+#include "game.h"
 
 CGlobalState gGlobalState;
 
@@ -566,7 +567,7 @@ void CWorld::Precache()
 	PRECACHE_SOUND("common/bodydrop4.wav");
 
 	g_Language = (int)CVAR_GET_FLOAT("sv_language");
-	if (g_Language == LANGUAGE_GERMAN)
+	if (g_Language == LANGUAGE_GERMAN && german.value == 1)
 	{
 		PRECACHE_MODEL("models/germangibs.mdl");
 	}

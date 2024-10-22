@@ -25,6 +25,7 @@
 #include "weapons.h"
 #include "soundent.h"
 #include "hornet.h"
+#include "game.h"
 
 //=========================================================
 // monster-specific schedule types
@@ -596,7 +597,14 @@ void CAGrunt::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_GREEN;
+
+	#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+	#endif
+
 	pev->effects = 0;
 	pev->health = gSkillData.agruntHealth;
 	m_flFieldOfView = 0.2; // indicates the width of this monster's forward view cone ( as a dotproduct result )

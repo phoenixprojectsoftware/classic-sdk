@@ -25,6 +25,7 @@
 #include "effects.h"
 #include "weapons.h"
 #include "soundent.h"
+#include "game.h"
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -528,7 +529,14 @@ void CISlave::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_GREEN;
+
+#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif 
+	
 	pev->effects = 0;
 	pev->health = gSkillData.slaveHealth;
 	pev->view_ofs = Vector(0, 0, 64);  // position of the eyes relative to monster's origin.

@@ -28,6 +28,7 @@
 #include "decals.h"
 #include "explode.h"
 #include "func_break.h"
+#include "game.h"
 
 //=========================================================
 // Gargantua Monster
@@ -772,7 +773,13 @@ void CGargantua::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	m_bloodColor = BLOOD_COLOR_GREEN;
+
+#ifndef CLIENT_DLL
+	if (german.value == 0)
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	else
+		m_bloodColor = DONT_BLEED;
+#endif 
 	pev->health = gSkillData.gargantuaHealth;
 	//pev->view_ofs		= Vector ( 0, 0, 96 );// taken from mdl file
 	m_flFieldOfView = -0.2; // width of forward view cone ( as a dotproduct result )

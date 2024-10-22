@@ -29,6 +29,7 @@
 #include "animation.h"
 #include "weapons.h"
 #include "func_break.h"
+#include "game.h"
 
 extern Vector VecBModelOrigin(entvars_t* pevBModel);
 
@@ -184,7 +185,7 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
 	{
 		CGib* pGib = GetClassPtr((CGib*)NULL);
 
-		if (g_Language == LANGUAGE_GERMAN)
+		if (g_Language == LANGUAGE_GERMAN && german.value == 1)
 		{
 			pGib->Spawn("models/germangibs.mdl");
 			pGib->pev->body = RANDOM_LONG(0, GERMAN_GIB_COUNT - 1);
