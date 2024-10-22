@@ -544,7 +544,7 @@ void CFuncRotating::RampPitchVol(bool fUp)
 	vec_t vecCur;
 	vec_t vecFinal;
 	float fpct;
-	float fvol;
+	float fvol = 0.0f;
 	float fpitch;
 	int pitch;
 

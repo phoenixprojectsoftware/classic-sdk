@@ -1443,7 +1443,7 @@ void EMIT_SOUND_PREDICTED(edict_t* entity, int channel, const char* sample, floa
 
 void EMIT_SOUND_SUIT(edict_t* entity, const char* sample)
 {
-	float fvol;
+	float fvol = 0.0f;
 	int pitch = PITCH_NORM;
 
 	fvol = CVAR_GET_FLOAT("suitvolume");
@@ -1458,7 +1458,7 @@ void EMIT_SOUND_SUIT(edict_t* entity, const char* sample)
 
 void EMIT_GROUPID_SUIT(edict_t* entity, int isentenceg)
 {
-	float fvol;
+	float fvol = 0.0f;
 	int pitch = PITCH_NORM;
 
 	fvol = CVAR_GET_FLOAT("suitvolume");
@@ -1473,7 +1473,7 @@ void EMIT_GROUPID_SUIT(edict_t* entity, int isentenceg)
 
 void EMIT_GROUPNAME_SUIT(edict_t* entity, const char* groupname)
 {
-	float fvol;
+	float fvol = 0.0f;
 	int pitch = PITCH_NORM;
 
 	fvol = CVAR_GET_FLOAT("suitvolume");
@@ -1641,7 +1641,7 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr, Vector vecSrc, Vector vecEnd, int 
 	// hit the world, try to play sound based on texture material type
 
 	char chTextureType;
-	float fvol;
+	float fvol = 0.0f;
 	float fvolbar;
 	char szbuffer[64];
 	const char* pTextureName;

@@ -367,7 +367,7 @@ void CBreakable::Precache()
 void CBreakable::DamageSound()
 {
 	int pitch;
-	float fvol;
+	float fvol = 0.0f;
 	const char* rgpsz[6];
 	int i;
 	int material = m_Material;
@@ -605,7 +605,7 @@ void CBreakable::Die()
 	CBaseEntity* pEntity = NULL;
 	char cFlag = 0;
 	int pitch;
-	float fvol;
+	float fvol = 0.0f;
 
 	pitch = 95 + RANDOM_LONG(0, 29);
 

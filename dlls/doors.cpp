@@ -120,7 +120,7 @@ void PlayLockSounds(entvars_t* pev, locksound_t* pls, bool flocked, bool fbutton
 	{
 		bool fplaysound = (!FStringNull(pls->sLockedSound) && gpGlobals->time > pls->flwaitSound);
 		bool fplaysentence = (!FStringNull(pls->sLockedSentence) && 0 == pls->bEOFLocked && gpGlobals->time > pls->flwaitSentence);
-		float fvol;
+		float fvol = 0.0f;
 
 		if (fplaysound && fplaysentence)
 			fvol = 0.25;
@@ -157,7 +157,7 @@ void PlayLockSounds(entvars_t* pev, locksound_t* pls, bool flocked, bool fbutton
 
 		bool fplaysound = (!FStringNull(pls->sUnlockedSound) && gpGlobals->time > pls->flwaitSound);
 		bool fplaysentence = (!FStringNull(pls->sUnlockedSentence) && 0 == pls->bEOFUnlocked && gpGlobals->time > pls->flwaitSentence);
-		float fvol;
+		float fvol = 0.0f;
 
 		// if playing both sentence and sound, lower sound volume so we hear sentence
 		if (fplaysound && fplaysentence)

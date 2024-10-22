@@ -591,7 +591,7 @@ void PM_CatagorizeTextureType()
 
 void PM_UpdateStepSound()
 {
-	float fvol;
+	float fvol = 0.0f;
 	Vector knee;
 	Vector feet;
 	Vector center;

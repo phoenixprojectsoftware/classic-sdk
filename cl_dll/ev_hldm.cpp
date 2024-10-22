@@ -109,7 +109,7 @@ float EV_HLDM_PlayTextureSound(int idx, pmtrace_t* ptr, float* vecSrc, float* ve
 	// hit the world, try to play sound based on texture material type
 	char chTextureType = CHAR_TEX_CONCRETE;
 	cl_entity_t* cl_entity = NULL;
-	float fvol;
+	float fvol = 0.0f;
 	float fvolbar;
 	const char* rgsz[4];
 	int cnt;
