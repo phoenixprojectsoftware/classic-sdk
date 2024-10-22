@@ -299,41 +299,48 @@ void CBaseMonster::FadeMonster()
 //=========================================================
 void CBaseMonster::GibMonster()
 {
-	TraceResult tr;
-	bool gibbed = false;
-
-	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
-
-	// only humans throw skulls !!!UNDONE - eventually monsters will have their own sets of gibs
-	if (HasHumanGibs())
+	if (german.value == 1)
 	{
-		if (CVAR_GET_FLOAT("violence_hgibs") != 0) // Only the player will ever get here
-		{
-			CGib::SpawnHeadGib(pev);
-			CGib::SpawnRandomGibs(pev, 4, true); // throw some human gibs.
-		}
-		gibbed = true;
+		FadeMonster();
 	}
-	else if (HasAlienGibs())
+	else
 	{
-		if (CVAR_GET_FLOAT("violence_agibs") != 0) // Should never get here, but someone might call it directly
-		{
-			CGib::SpawnRandomGibs(pev, 4, false); // Throw alien gibs
-		}
-		gibbed = true;
-	}
+		TraceResult tr;
+		bool gibbed = false;
 
-	if (!IsPlayer())
-	{
-		if (gibbed)
+		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
+
+		// only humans throw skulls !!!UNDONE - eventually monsters will have their own sets of gibs
+		if (HasHumanGibs())
 		{
-			// don't remove players!
-			SetThink(&CBaseMonster::SUB_Remove);
-			pev->nextthink = gpGlobals->time;
+			if (CVAR_GET_FLOAT("violence_hgibs") != 0) // Only the player will ever get here
+			{
+				CGib::SpawnHeadGib(pev);
+				CGib::SpawnRandomGibs(pev, 4, true); // throw some human gibs.
+			}
+			gibbed = true;
 		}
-		else
+		else if (HasAlienGibs())
 		{
-			FadeMonster();
+			if (CVAR_GET_FLOAT("violence_agibs") != 0) // Should never get here, but someone might call it directly
+			{
+				CGib::SpawnRandomGibs(pev, 4, false); // Throw alien gibs
+			}
+			gibbed = true;
+		}
+
+		if (!IsPlayer())
+		{
+			if (gibbed)
+			{
+				// don't remove players!
+				SetThink(&CBaseMonster::SUB_Remove);
+				pev->nextthink = gpGlobals->time;
+			}
+			else
+			{
+				FadeMonster();
+			}
 		}
 	}
 }
